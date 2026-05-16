@@ -126,11 +126,21 @@ jobs:
         # Senjata pamungkas: batasi sync agar benar-benar hanya mengambil apa yang ada di branch tanpa sampah metadata
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
 
-    - name: Proses Kompilasi UT (Halium-Boot)
+    - name: Proses Kompilasi UT (Halium Boot)
       run: |
         cd ${{ github.workspace }}/halium
+        
+        # 1. Hapus sisa-sisa roomservice yang bikin rusak folder device/xiaomi/vince kemarin
+        # Kita paksa git checkout ulang biar foldernya suci sesuai manifes lokal kita
+        cd device/xiaomi/vince && git reset --hard HEAD && git clean -fd && cd ../../..
+        
+        # 2. Load environment build
         source build/envsetup.sh
-        lunch halium_vince-userdebug || lunch aosp_vince-userdebug || breakfast vince
+        
+        # 3. Tembak langsung lunch target asli buatan developernya (lineage_vince)
+        lunch lineage_vince-userdebug
+        
+        # 4. Gass kompilasi halium-boot
         make -j$(nproc --all) halium-boot
 
     - name: Upload Hasil Build (Artifacts)
