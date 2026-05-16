@@ -130,19 +130,22 @@ jobs:
       run: |
         cd ${{ github.workspace }}/halium
         
-        # Reset folder device dari sisa gangguan roomservice lama
+        # Pastikan folder tree suci kembali
         cd device/xiaomi/vince && git reset --hard HEAD && git clean -fd && cd ../../..
         
         # Load environment build
         source build/envsetup.sh
         lunch lineage_vince-userdebug
         
-        # JALUR PENYELAMATAN: Skip unit tests bawaan soong biar ga freeze sampai 6 jam!
+        # JALUR PENYELAMATAN: Skip unit tests bawaan soong biar ga freeze!
         export FORCE_BUILD_FROM_SOURCE=true
         export DISABLE_ARTIFACT_PATH_REQUIREMENTS=true
         export SOONG_ALLOW_MISSING_DEPENDENCIES=true
         
-        # Gass langsung kompilasi tanpa basa-basi testing
+        # Tambahan baris krusial: Matikan semua internal tests bawaan Soong Build
+        export DBG_MAKE=true
+        
+        # Gass langsung kompilasi tanpa pake acara testing apex
         make -j$(nproc --all) halium-boot
 
     - name: Upload Hasil Build (Artifacts)
