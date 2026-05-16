@@ -55,14 +55,14 @@ jobs:
     - name: Konfigurasi Git
       run: |
         git config --global user.name "ArgaLxrd21"
-        git config --global user.email "arga.lxrd.21@gmail.com"
+        git config --global user.email "argasptra21@gmail.com"
 
     - name: Inisialisasi Repo Halium 13
       run: |
         cd ${{ github.workspace }}/halium
-        # Tambahkan flag --clone-bundle=no saat init untuk menghemat space berkali-kali lipat
-        repo init -u https://github.com/Halium/android -b halium-13.0 --depth=1 --clone-bundle=no
-
+        # Kita ganti --clone-bundle=no menjadi --no-clone-bundle yang resmi didukung
+        repo init -u https://github.com/Halium/android -b halium-13.0 --depth=1 --no-clone-bundle
+        
     - name: Setup Local Manifest (Vince 4.19 Harta Karun)
       run: |
         mkdir -p ${{ github.workspace }}/halium/.repo/local_manifests
