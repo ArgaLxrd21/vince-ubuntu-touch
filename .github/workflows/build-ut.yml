@@ -70,13 +70,12 @@ jobs:
         <?xml version="1.0" encoding="UTF-8"?>
         <manifest>
           <project path="device/xiaomi/vince" name="Mirai-Miscellaneous/android_device_xiaomi_vince" revision="lineage-20_k4.19" clone-depth="1" />
-          <project path="device/xiaomi/msm8953-common" name="Mirai-Miscellaneous/android_device_xiaomi_msm8953-common" revision="lineage-20_k4.19" clone-depth="1" />
 
+          <project path="vendor/xiaomi/vince" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_vince" revision="lineage-20" clone-depth="1" />
+
+          <project path="device/xiaomi/msm8953-common" name="Mirai-Miscellaneous/android_device_xiaomi_msm8953-common" revision="lineage-20" clone-depth="1" />
+          <project path="vendor/xiaomi/msm8953-common" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_msm8953-common" revision="lineage-20" clone-depth="1" />
           <project path="kernel/xiaomi/vince" name="imren0x/msm-4.19" revision="lineage-20" clone-depth="1" />
-
-          <project path="vendor/xiaomi/vince" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_vince" revision="lineage-20_k4.19" clone-depth="1" />
-          <project path="vendor/xiaomi/msm8953-common" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_msm8953-common" revision="lineage-20_k4.19" clone-depth="1" />
-
           <project path="hardware/halium" name="Halium/android_hardware_halium" revision="halium-13.0" clone-depth="1" />
         </manifest>
         EOF
