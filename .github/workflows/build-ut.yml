@@ -1,7 +1,7 @@
 name: Build Ubuntu Touch (Halium 13) - Vince 4.19
 
 on:
-  workflow_dispatch: # Membikin tombol "Run workflow" manual di GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,14 +11,37 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    - name: Pembersihan Storage Super Agresif
+      run: |
+        echo "=== Storage Sebelum Diskusi ==="
+        df -h
+        
+        # Hapus package besar bawaan runner yang gak kita pakai
+        sudo apt-get remove -y '^dotnet-.*' '^llvm-.*' 'php.*' google-chrome-stable microsoft-edge-stable azure-cli google-cloud-cli mono-devel powershell firefox
+        sudo apt-get autoremove -y
+        sudo apt-get clean
+        
+        # Hapus folder-folder raksasa tools bawaan GitHub Actions
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache
+        sudo rm -rf /usr/local/share/boost
+        
+        echo "=== Storage Setelah Dibersihkan ==="
+        df -h
+
     - name: Maksimalisasi Ruang Disk Server
       uses: easimon/maximize-build-space@master
       with:
-        root-reserve-mb: 10240
-        swap-size-mb: 10240
+        root-reserve-mb: 4096
+        swap-size-mb: 2048
         remove-dotnet: 'true'
         remove-android: 'true'
         remove-haskell: 'true'
+
+    - name: Cek Sisa Space Akhir
+      run: df -h
 
     - name: Install Tooling & Dependensi Build
       run: |
@@ -64,7 +87,8 @@ jobs:
     - name: Repo Sync (Narik Semua Bahan Sekaligus)
       run: |
         cd ~/halium
-        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+        # Ditambah flag --no-clone-bundle dan depth=1 biar download seminim mungkin
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch --depth=1
 
     - name: Proses Kompilasi UT (Halium-Boot)
       run: |
