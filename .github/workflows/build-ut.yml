@@ -11,25 +11,35 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    # PENGATURAN STORAGE MAKSIMAL - Kunci utama lolos dari No Space
     - name: Maksimalisasi Ruang Disk Server
       uses: easimon/maximize-build-space@master
       with:
-        root-reserve-mb: 4096
-        swap-size-mb: 2048
+        root-reserve-mb: 1024       # Sisakan seminim mungkin untuk sistem OS server
+        swap-size-mb: 4096          # Naikkan swap sedikit buat jaga-jaga RAM luber
         remove-dotnet: 'true'
         remove-android: 'true'
         remove-haskell: 'true'
+        remove-codeql: 'true'       # Tambahan: hapus database codeql bawaan github
+        remove-docker-images: 'true' # Tambahan: hapus semua image docker bawaan server
 
     - name: Pembersihan Storage Super Agresif
       run: |
-        echo "=== Storage Sebelum Pembersihan Brutal ==="
+        echo "=== Cek Kapasitas Disk Sebelum Bersih-Bersih ==="
         df -h
+        
+        # Hapus tool sisa secara manual
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /usr/local/lib/android
         sudo rm -rf /opt/ghc
         sudo rm -rf /opt/hostedtoolcache
         sudo rm -rf /usr/local/share/boost
-        echo "=== Storage Setelah Dibersihkan ==="
+        
+        # Kita buat link folder halium langsung di area kerja utama github yang sudah dibesarkan
+        sudo mkdir -p ${{ github.workspace }}/halium
+        sudo chown -R runner:runner ${{ github.workspace }}
+        
+        echo "=== Cek Kapasitas Disk Setelah Bersih-Bersih ==="
         df -h
 
     - name: Install Tooling & Dependensi Build
@@ -37,16 +47,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3 python3-pip
         
-        # Buat foldernya pakai sudo
-        sudo mkdir -p /workspaces/bin
-        
-        # Ambil alih kepemilikan folder supaya user runner bisa nulis/baca tanpa sudo
-        sudo chown -R runner:runner /workspaces
-        
-        # Baru deh download repo aman tanpa hambatan
-        curl https://storage.googleapis.com/git-repo-downloads/repo > /workspaces/bin/repo
-        chmod a+x /workspaces/bin/repo
-        sudo ln -sf /workspaces/bin/repo /usr/bin/repo
+        mkdir -p ${{ github.workspace }}/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ${{ github.workspace }}/bin/repo
+        chmod a+x ${{ github.workspace }}/bin/repo
+        sudo ln -sf ${{ github.workspace }}/bin/repo /usr/bin/repo
 
     - name: Konfigurasi Git
       run: |
@@ -55,37 +59,37 @@ jobs:
 
     - name: Inisialisasi Repo Halium 13
       run: |
-        # Kunci utama: Pindah total dari direktori Home ke /workspaces/
-        mkdir -p /workspaces/halium
-        cd /workspaces/halium
-        repo init -u https://github.com/Halium/android -b halium-13.0 --depth=1
+        cd ${{ github.workspace }}/halium
+        # Tambahkan flag --clone-bundle=no saat init untuk menghemat space berkali-kali lipat
+        repo init -u https://github.com/Halium/android -b halium-13.0 --depth=1 --clone-bundle=no
 
     - name: Setup Local Manifest (Vince 4.19 Harta Karun)
       run: |
-        mkdir -p /workspaces/halium/.repo/local_manifests
-        cat <<EOF > /workspaces/halium/.repo/local_manifests/vince.xml
+        mkdir -p ${{ github.workspace }}/halium/.repo/local_manifests
+        cat <<EOF > ${{ github.workspace }}/halium/.repo/local_manifests/vince.xml
         <?xml version="1.0" encoding="UTF-8"?>
         <manifest>
-          <project path="device/xiaomi/vince" name="Mirai-Miscellaneous/android_device_xiaomi_vince" revision="lineage-20_k4.19" />
-          <project path="device/xiaomi/msm8953-common" name="Mirai-Miscellaneous/android_device_xiaomi_msm8953-common" revision="lineage-20_k4.19" />
+          <project path="device/xiaomi/vince" name="Mirai-Miscellaneous/android_device_xiaomi_vince" revision="lineage-20_k4.19" clone-depth="1" />
+          <project path="device/xiaomi/msm8953-common" name="Mirai-Miscellaneous/android_device_xiaomi_msm8953-common" revision="lineage-20_k4.19" clone-depth="1" />
 
-          <project path="kernel/xiaomi/vince" name="imren0x/msm-4.19" revision="lineage-20" />
+          <project path="kernel/xiaomi/vince" name="imren0x/msm-4.19" revision="lineage-20" clone-depth="1" />
 
-          <project path="vendor/xiaomi/vince" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_vince" revision="lineage-20_k4.19" />
-          <project path="vendor/xiaomi/msm8953-common" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_msm8953-common" revision="lineage-20_k4.19" />
+          <project path="vendor/xiaomi/vince" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_vince" revision="lineage-20_k4.19" clone-depth="1" />
+          <project path="vendor/xiaomi/msm8953-common" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_msm8953-common" revision="lineage-20_k4.19" clone-depth="1" />
 
-          <project path="hardware/halium" name="Halium/android_hardware_halium" revision="halium-13.0" />
+          <project path="hardware/halium" name="Halium/android_hardware_halium" revision="halium-13.0" clone-depth="1" />
         </manifest>
         EOF
 
     - name: Repo Sync (Narik Semua Bahan Sekaligus)
       run: |
-        cd /workspaces/halium
+        cd ${{ github.workspace }}/halium
+        # Senjata pamungkas: batasi sync agar benar-benar hanya mengambil apa yang ada di branch tanpa sampah metadata
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
 
     - name: Proses Kompilasi UT (Halium-Boot)
       run: |
-        cd /workspaces/halium
+        cd ${{ github.workspace }}/halium
         source build/envsetup.sh
         lunch halium_vince-userdebug || lunch aosp_vince-userdebug || breakfast vince
         make -j$(nproc --all) halium-boot
@@ -95,6 +99,6 @@ jobs:
       with:
         name: Ubuntu-Touch-Vince-4.19
         path: |
-          /workspaces/halium/out/target/product/vince/halium-boot.img
-          /workspaces/halium/out/target/product/vince/system.img
+          ${{ github.workspace }}/halium/out/target/product/vince/halium-boot.img
+          ${{ github.workspace }}/halium/out/target/product/vince/system.img
           
