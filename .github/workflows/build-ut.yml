@@ -65,20 +65,20 @@ jobs:
         repo init -u https://github.com/Halium/android -b halium-13.0 --depth=1
 
     - name: Setup Local Manifest (Vince 4.19 Harta Karun)
-      # Bagian ini tetap sama seperti sebelumnya...
       run: |
         mkdir -p ~/halium/.repo/local_manifests
         cat <<EOF > ~/halium/.repo/local_manifests/vince.xml
         <?xml version="1.0" encoding="UTF-8"?>
         <manifest>
-          <remote name="github" fetch="https://github.com/" />
-          <remote name="gitlab" fetch="https://gitlab.com/" />
-          <project path="device/xiaomi/vince" name="Mirai-Miscellaneous/android_device_xiaomi_vince" remote="github" revision="lineage-20_k4.19" />
-          <project path="device/xiaomi/msm8953-common" name="Mirai-Miscellaneous/android_device_xiaomi_msm8953-common" remote="github" revision="lineage-20_k4.19" />
-          <project path="kernel/xiaomi/vince" name="imren0x/msm-4.19" remote="github" revision="lineage-20" />
-          <project path="vendor/xiaomi/vince" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_vince" remote="github" revision="lineage-20_k4.19" />
-          <project path="vendor/xiaomi/msm8953-common" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_msm8953-common" remote="github" revision="lineage-20_k4.19" />
-          <project path="hardware/halium" name="Halium/android_hardware_halium" remote="github" revision="halium-13.0" />
+          <project path="device/xiaomi/vince" name="Mirai-Miscellaneous/android_device_xiaomi_vince" revision="lineage-20_k4.19" />
+          <project path="device/xiaomi/msm8953-common" name="Mirai-Miscellaneous/android_device_xiaomi_msm8953-common" revision="lineage-20_k4.19" />
+
+          <project path="kernel/xiaomi/vince" name="imren0x/msm-4.19" revision="lineage-20" />
+
+          <project path="vendor/xiaomi/vince" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_vince" revision="lineage-20_k4.19" />
+          <project path="vendor/xiaomi/msm8953-common" name="Mirai-Miscellaneous/proprietary_vendor_xiaomi_msm8953-common" revision="lineage-20_k4.19" />
+
+          <project path="hardware/halium" name="Halium/android_hardware_halium" revision="halium-13.0" />
         </manifest>
         EOF
 
