@@ -130,23 +130,25 @@ jobs:
       run: |
         cd ${{ github.workspace }}/halium
         
-        # Pastikan folder tree suci kembali
+        # Bersihkan sisa-sisa roomservice lama (jika ada)
         cd device/xiaomi/vince && git reset --hard HEAD && git clean -fd && cd ../../..
         
         # Load environment build
         source build/envsetup.sh
         lunch lineage_vince-userdebug
         
-        # JALUR PENYELAMATAN: Skip unit tests bawaan soong biar ga freeze!
+        # JALUR PENYELAMATAN RAM (Anti-OOM & Anti-Freeze)
         export FORCE_BUILD_FROM_SOURCE=true
         export DISABLE_ARTIFACT_PATH_REQUIREMENTS=true
         export SOONG_ALLOW_MISSING_DEPENDENCIES=true
-        
-        # Tambahan baris krusial: Matikan semua internal tests bawaan Soong Build
         export DBG_MAKE=true
         
-        # Gass langsung kompilasi tanpa pake acara testing apex
-        make -j$(nproc --all) halium-boot
+        # Trik sakti meredam kebocoran RAM pada Soong/Go compiler
+        export MALLOC_TUNABLE_FLAGS=glibc.malloc.tcache_max=0
+        
+        # Ganti -j$(nproc --all) menjadi -j1 atau -j2 secara manual 
+        # Biar prosesnya jalan pelan tapi PASTI slamet, gak bikin server pingsan!
+        make -j2 halium-boot
 
     - name: Upload Hasil Build (Artifacts)
       uses: actions/upload-artifact@v4
